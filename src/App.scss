@@ -1,0 +1,66 @@
+body{
+    background-color: #544d4c;
+    font-family: 'Roboto';
+}
+.App{
+    justify-content: center;
+    display: flex;
+    margin-top: 50px;
+}
+.searchContainer{
+    justify-content: center;
+    display: flex;
+    padding-bottom: 5px;
+    input{
+        font-size: 25px;
+        width: 400px;
+    }
+}
+.moviesContainer{
+    width: 75%;
+    a{
+        text-decoration: none;
+    }
+}
+.detailsWrapper{
+    width: 60%;
+}
+.detailsContainer{
+    width: 100%;
+    height: 450px;
+    display: inline-flex;
+    background-color: white;
+    img{
+        width: 100%;
+        height: 100%;
+    }
+    .detailImg{
+        flex: 2;
+        padding: 6px;
+    }
+    .detailInfo{
+        flex: 3;
+        display: inline-grid;
+        padding: 6px;
+        .mainTitle{
+            color: firebrick;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .title{
+            font-weight: bold;
+            font-size: 18px;
+        }
+    }
+}
+.homeLink{
+    display: flex;
+    margin-top: 40px;
+    justify-content: center;
+    a{
+        text-decoration: none;
+    }
+}
+.notFoundMsg{
+    width: 100%;
+}
