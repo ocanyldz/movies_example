@@ -1,36 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import Rating from "@material-ui/lab/Rating";
 import Typography from "@material-ui/core/Typography";
 import Button from '@material-ui/core/Button';
+import dexieFunctions from "./dexieFunctions";
 
 const Details = (props) => {
   const id = props.match.params.id;
   const [movieDetails, setMovieDetails] = useState([]);
   const [rating, setRating] = useState(0);
+  const [imageSource, setImageSource] = useState(null);
+
+  const imageRef = useRef(null);
 
   useEffect(() => {
-    const fetchMovieDetails = async () => {
-      const res = await axios.get(
-        "http://www.omdbapi.com/?apikey=a7f0a0ef&type=movie&i=" + id
-      );
-      if (res.statusText === "OK") {
-        setMovieDetails(res.data);
-        setRating(parseFloat(res.data.imdbRating));
-      } else {
-        setMovieDetails([]);
-      }
-    };
-
     fetchMovieDetails();
   }, []);
+
+  useLayoutEffect(() => {
+    imageRef.current.addEventListener("load", imageLoaded);
+  }, []);
+
+  const fetchMovieDetails = async () => {
+    let detailUrl = "http://www.omdbapi.com/?apikey=a7f0a0ef&type=movie&i=" + id;
+    const details = await axios.get(
+      detailUrl
+    );
+    if (details.statusText === "OK") {
+      setMovieDetails(details.data);
+
+      dexieFunctions.getImageFromDb(details.data.Poster).then(res => {
+        if(res.length > 0){
+          setImageSource(res[0].base64_url);
+          return;
+        }else{
+          setImageSource(details.data.Poster);
+        }
+      });
+      
+      setRating(parseFloat(details.data.imdbRating));
+    } else {
+      setMovieDetails([]);
+    }
+  };
+
+  const imageLoaded = async() => {
+    if(imageRef.current && !imageRef.current.currentSrc.includes("data:image")){
+        let dataUrl = imageToBase64Url(imageRef.current);
+        if(dataUrl !== "data:,")
+        dexieFunctions.addImageToDb(imageRef.current.src, dataUrl);
+    }
+  }
+
+  const imageToBase64Url = (currentRef) => {
+    currentRef.crossOrigin = "anonymous";
+    var imgCanvas = document.createElement("canvas"),
+    imgContext = imgCanvas.getContext("2d");
+  
+    imgCanvas.width = currentRef.naturalWidth;
+    imgCanvas.height = currentRef.naturalHeight;
+  
+    imgContext.drawImage(currentRef, 0, 0);
+  
+    var imgAsDataURL = imgCanvas.toDataURL("image/jpeg", 0.7);
+  
+    return imgAsDataURL;
+  }
 
   return (
     <div className="detailsWrapper">
       <div className="detailsContainer">
         <div className="detailImg">
-          <img alt={movieDetails.Title} src={movieDetails.Poster}></img>
+          <img alt={movieDetails.Title} src={imageSource} ref={imageRef}></img>
         </div>
         <div className="detailInfo">
           <div className="mainTitle">

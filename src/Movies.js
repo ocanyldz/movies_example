@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import SearchIcon from "@material-ui/icons/Search";
 import { withStyles, makeStyles } from "@material-ui/core/styles";
+import dexieFunctions from "./dexieFunctions";
 
 const StyledTableCell = withStyles((theme) => ({
   head: {
@@ -42,24 +43,31 @@ const Movies = () => {
   const [searchKey, setSearchKey] = useState(searchFieldValue);
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    const fetchMovies = async () => {
-      const res = await axios.get(
-        "http://www.omdbapi.com/?apikey=a7f0a0ef&type=movie&r=json&s=" +
-          searchKey
-      );
-      if (res.data.Response === "True") {
-        let data = res.data.Search;
-        const sortedData = data.sort((a, b) => b.Year - a.Year);
-        setMovies(sortedData);
-      } else {
-        setMovies([]);
-      }
-      setLoaded(true);
-    };
+  const url = "http://www.omdbapi.com/?apikey=a7f0a0ef&type=movie&r=json&s=Pokemon";
 
-    fetchMovies();
-  }, [searchKey]);
+  useEffect(() => {
+    dexieFunctions.getItemFromDb(url).then(res => {
+      if(res.length > 0){
+        setMovies(res[0].response);
+        setLoaded(true);
+      }else{
+        fetchMovies(url);
+      }
+    });
+  }, []);
+
+  const fetchMovies = async (url) => {
+    const res = await axios.get(url);
+    if (res.data.Response === "True") {
+      let data = res.data.Search;
+      const sortedData = data.sort((a, b) => b.Year - a.Year);
+      dexieFunctions.addItemToDb(url, sortedData);
+      setMovies(sortedData);
+    } else {
+      setMovies([]);
+    }
+    setLoaded(true);
+  };
 
   const handleChangePage = (e, newPage) => {
     setPageNum(newPage);
@@ -74,25 +82,6 @@ const Movies = () => {
   };
   return (
     <Paper className="moviesContainer">
-      <div className="searchContainer">
-        <TextField
-          placeholder="Search movies..."
-          value={searchFieldValue}
-          onKeyPress={(e) => {
-            if (e.key === "Enter") {
-              searchMovies();
-            }
-          }}
-          onChange={(e) => setSearchFieldValue(e.target.value)}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </div>
       <TableContainer>
         {loaded ? (
           <Table>
